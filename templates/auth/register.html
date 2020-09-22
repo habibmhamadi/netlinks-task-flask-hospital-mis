@@ -1,0 +1,37 @@
+{% extends 'auth/master.html' %} {% block content %}
+
+ <div class="rounded-sm shadow-md mx-4 w-full sm:w-1/2">
+     <div class="py-3 px-3 bg-gray-200" style="width: 100%;">
+        REGISTER
+     </div>
+     <div class="px-4 py-8" style="width: 100%;">
+        <p class="text-center mb-5 text-red-600 text-sm err">Incorrect credentials!</p>
+        <form action="/register" method="post">
+            <div class="flex flex-col items-center" style="text-align: left;">
+                <label for="Email" style="width: 50%;">Email</label>
+                <input name="email" id="email" class="border border-gray-300 mt-1 px-2 py-1 rounded" required placeholder="john@example.com" type="email" style="width: 50%;">
+                <p class="w-1/2 err text-red-600 text-sm">Email already taken</p>
+            </div>
+            <div class="flex flex-col mt-3 items-center" style="text-align: left;">
+                <label for="Password" style="width: 50%;">Password</label>
+                <input name="password" class="border border-gray-300 mt-1 px-2 py-1 rounded" required minlength="8" placeholder="password" type="password" style="width: 50%;">
+            </div>
+            <div class="flex flex-col mt-4 items-center justify-center py-1">
+                <button type="submit" class="w-1/2 py-1 mb-5 text-white rounded bg-red-600">
+                    Register
+                </button>
+                <p>Already have an account? <a href="/login" class="text-red-600">Login</a></p>
+            </div>
+        </form>
+     </div>
+ </div>
+
+ <script>
+     const input = document.querySelector('#email')
+     const errs = document.querySelectorAll('.err')
+     input.addEventListener('input',(e)=>{
+        errs.forEach((er)=>er.classList.add('hidden'))
+     })
+ </script>
+
+{% endblock %}
