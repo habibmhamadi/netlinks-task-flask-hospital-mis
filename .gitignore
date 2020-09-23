@@ -1,1 +1,4 @@
 venv
+migration
+__pycache__
+models/__pycache__
