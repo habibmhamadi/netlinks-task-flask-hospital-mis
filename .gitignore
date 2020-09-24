@@ -1,4 +1,4 @@
 venv
-migration
+migrations
 __pycache__
 models/__pycache__
