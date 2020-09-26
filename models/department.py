@@ -1,13 +1,15 @@
 import sys
 sys.path.append(".")
 
+from sqlalchemy.orm import relationship, backref
 from main import db
 
 class Department(db.Model):
     __tablename__ = 'departments'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
-    date_registerd = db.Column(db.Date) 
+    doctors = db.relationship('Doctor', backref='departments', lazy=True)
+    date_registerd = db.Column(db.Date)
 
     def __init__(self, name, date_registerd):
         self.name = name

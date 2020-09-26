@@ -1,6 +1,7 @@
 import sys
 sys.path.append(".")
 
+from sqlalchemy.orm import relationship, backref
 from main import db
 
 class Doctor(db.Model):
@@ -9,7 +10,8 @@ class Doctor(db.Model):
     name = db.Column(db.String())
     lastname = db.Column(db.String())
     details = db.Column(db.String())
-    dep_id = db.Column(db.Integer)
+    dep_id = db.Column(db.Integer, db.ForeignKey('departments.id'))
+    # departments = relationship("Department", backref=backref("departments", uselist=False))
     date_registerd = db.Column(db.Date) 
 
     def __init__(self, name, lastname, details, dep_id, date_registerd):

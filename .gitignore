@@ -1,4 +1,4 @@
-venv
 migrations
+venv
 __pycache__
 models/__pycache__

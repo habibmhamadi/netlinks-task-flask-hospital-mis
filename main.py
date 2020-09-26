@@ -1,10 +1,14 @@
 import os
 from flask import Flask, render_template, session, redirect, request, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 import secrets
 import base64
+import re
+from datetime import date
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='', 
+            static_folder='static',)
 app.secret_key = secrets.token_urlsafe(16)
 
 app.config.from_object(os.environ['APP_SETTINGS'])
@@ -17,6 +21,7 @@ from models.appointment import Appointment
 from models.department import Department
 from models.auth import Auth
 
+name_regex = re.compile(r'^[a-zA-Z]{1}.*')
 
 def authenticate():
     return 'fullname' in session
@@ -46,22 +51,74 @@ def appointments():
 @app.route("/departments")
 def departments():
     if authenticate():
-        deps = Appointment.query.all()
+        deps = Department.query.all()
         return render_template('department/index.html',deps=deps)
+    return redirect('/login')
+
+@app.route("/departments/add",methods=['POST','GET'])
+def add_department():
+    if authenticate():
+        if request.method == 'POST':
+            dep_name = request.form['department']
+            if name_regex.match(dep_name):
+                query = Department.query.filter(func.lower(Department.name)==func.lower(dep_name)).first()
+                if query is None:
+                    new_dep = Department(
+                        name=dep_name,
+                        date_registerd=date.today()
+                    )
+                    db.session.add(new_dep)
+                    db.session.commit()
+                    return redirect('/departments')
+                flash('Department '+dep_name+' already exists!')
+                return redirect('/departments')
+            flash('Department name should start with letters!')
+            return redirect('/departments')
+        return 'Invalid request method!'
     return redirect('/login')
 
 @app.route("/patients")
 def patients():
     if authenticate():
-        pats = Appointment.query.all()
+        pats = Patient.query.all()
         return render_template('patient/index.html',pats=pats)
     return redirect('/login')
 
 @app.route("/doctors")
 def doctors():
     if authenticate():
-        docs = Appointment.query.all()
-        return render_template('doctor/index.html',docs=docs)
+        docs = Doctor.query.all()
+        deps = Department.query.all()
+        return render_template('doctor/index.html',docs=docs,deps=deps)
+    return redirect('/login')
+
+@app.route("/doctors/add",methods=['POST','GET'])
+def add_doctor():
+    if authenticate():
+        if request.method == 'POST':
+            dep_id = request.form['department']
+            doc_name = request.form['name']
+            doc_lastname = request.form['lastname']
+            doc_details = request.form['details']
+            errs = ''
+            if not name_regex.match(doc_name):
+                errs +='- Name should start with letters.\n'
+            if not name_regex.match(doc_lastname):
+                errs +='- Lastname should start with letters.'
+            if len(errs)>0:
+                flash(errs)
+                return redirect('/doctors')
+            new_doc = Doctor(
+                name=doc_name,
+                lastname=doc_lastname,
+                details=doc_details,
+                dep_id=dep_id,
+                date_registerd=date.today()
+            )
+            db.session.add(new_doc)
+            db.session.commit()
+            return redirect('/doctors')
+        return 'Invalid request method!'
     return redirect('/login')
 
 @app.route("/login", methods=['POST','GET'])

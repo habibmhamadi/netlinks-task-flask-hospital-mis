@@ -8,6 +8,15 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        .modal {
+          transition: opacity 0.25s ease;
+        }
+        body.modal-active {
+          overflow-x: hidden;
+          overflow-y: visible !important;
+        }
+      </style>
     <title>
       {% if title %}
       {{ title }}
@@ -62,13 +71,8 @@
         </div>
     </div>
 
-    <script>
-        const bars = document.querySelector('#bars')
-        const menu = document.querySelector('#menu')
-        bars.addEventListener('click',(e)=>{
-            menu.classList.toggle('hidden')
-        })
-    </script>
+   <script src="menu.js"></script>
+   <script src="modal.js"></script>
 
 </body>
 </html>
