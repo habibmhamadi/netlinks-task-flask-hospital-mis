@@ -30,23 +30,23 @@
         <nav class="sm:w-2/12">
             <h3 class="font-bold text-red-600 text-xl">HOSPITAL MIS</h3>
             <div id="menu" class="hidden sm:flex mt-4 sm:mt-12 flex-col pr-4 list-none text-gray-700" >
-                    <a href="/" class="py-2 flex items-center hover:text-black" >
+                    <a href="/" class="{% if url_for(request.endpoint)=='/' %}text-black{% endif %} py-2 flex items-center hover:text-black" >
                         <i class="fa fa-home mr-3"></i>
                         <p>Home</p>
                     </a>
-                    <a href="/appointments" class="py-2 flex items-center hover:text-black" >
+                    <a href="/appointments" class="{% if url_for(request.endpoint)=='/appointments' %}text-black{% endif %} py-2 flex items-center hover:text-black" >
                         <i class="fa fa-list-alt mr-3"></i>
                         <p>Appointments</p>
                     </a>
-                    <a href="/departments" class="py-2 flex items-center hover:text-black" >
+                    <a href="/departments" class="{% if url_for(request.endpoint)=='/departments' %}text-black{% endif %} py-2 flex items-center hover:text-black" >
                         <i class="fa fa-building mr-3"></i>
                         <p>Departments</p>
                     </a>
-                    <a href="patients" class="py-2 flex items-center hover:text-black" >
+                    <a href="patients" class="{% if url_for(request.endpoint)=='/patients' %}text-black{% endif %} py-2 flex items-center hover:text-black" >
                         <i class="fa fa-wheelchair mr-3"></i>
                         <p>Patients</p>
                     </a>
-                    <a href="doctors" class="py-2 flex items-center hover:text-black" >
+                    <a href="doctors" class="{% if url_for(request.endpoint)=='/doctors' %}text-black{% endif %} py-2 flex items-center hover:text-black" >
                         <i class="fa fa-user-md mr-3"></i>
                         <p>Doctors</p>
                     </a>
@@ -63,16 +63,14 @@
         <div style="position: absolute; right: 60px; cursor: pointer;"  id="bars">  
             <i class="fa fa-user-circle mr-2"></i>{{session['fullname']}}
         </div>
-        <div class="w-10/12 px-4 py-1 mt-20 sm:mt-0">
+        <div class="sm:w-10/12 w-full px-4 py-1 mt-20 sm:mt-0">
             <div class="sm:px-10">
                 {% block content %}
                 {% endblock content %}
             </div>
         </div>
     </div>
-
-   <script src="menu.js"></script>
-   <script src="modal.js"></script>
-
+    <script src="../static/menu.js"></script>
+    <script src="../static/modal.js"></script>
 </body>
 </html>

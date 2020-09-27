@@ -8,7 +8,7 @@ class Department(db.Model):
     __tablename__ = 'departments'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
-    doctors = db.relationship('Doctor', backref='departments', lazy=True)
+    doctors = db.relationship('Doctor', backref='departments', passive_deletes=True, lazy=True)
     date_registerd = db.Column(db.Date)
 
     def __init__(self, name, date_registerd):

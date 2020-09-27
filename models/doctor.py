@@ -10,8 +10,7 @@ class Doctor(db.Model):
     name = db.Column(db.String())
     lastname = db.Column(db.String())
     details = db.Column(db.String())
-    dep_id = db.Column(db.Integer, db.ForeignKey('departments.id'))
-    # departments = relationship("Department", backref=backref("departments", uselist=False))
+    dep_id = db.Column(db.Integer, db.ForeignKey('departments.id',ondelete='CASCADE'))
     date_registerd = db.Column(db.Date) 
 
     def __init__(self, name, lastname, details, dep_id, date_registerd):

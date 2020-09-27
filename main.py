@@ -1,14 +1,13 @@
 import os
 from flask import Flask, render_template, session, redirect, request, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
+from sqlalchemy import func, desc
 import secrets
 import base64
 import re
 from datetime import date
 
-app = Flask(__name__, static_url_path='', 
-            static_folder='static',)
+app = Flask(__name__)
 app.secret_key = secrets.token_urlsafe(16)
 
 app.config.from_object(os.environ['APP_SETTINGS'])
@@ -51,7 +50,8 @@ def appointments():
 @app.route("/departments")
 def departments():
     if authenticate():
-        deps = Department.query.all()
+        query = db.session.query(Department)
+        deps = query.order_by(desc(Department.id))
         return render_template('department/index.html',deps=deps)
     return redirect('/login')
 
@@ -74,7 +74,27 @@ def add_department():
                 return redirect('/departments')
             flash('Department name should start with letters!')
             return redirect('/departments')
-        return 'Invalid request method!'
+        return redirect('/departments')
+    return redirect('/login')
+
+@app.route("/departments/delete/<int:dep_id>",methods=['GET'])
+def delete_department(dep_id):
+    if authenticate():
+        Department.query.filter_by(id=dep_id).delete()
+        db.session.commit()
+        return redirect('/departments')
+    return redirect('/login')
+
+@app.route("/departments/edit/<int:dep_id>",methods=['POST'])
+def edit_department(dep_id):
+    if authenticate():
+        if request.method == 'POST':
+            Department.query.filter_by(id=dep_id).update({
+                'name':request.form['department']
+            })
+            db.session.commit()
+            return redirect('/departments')
+        return redirect('/departments')
     return redirect('/login')
 
 @app.route("/patients")
@@ -87,7 +107,8 @@ def patients():
 @app.route("/doctors")
 def doctors():
     if authenticate():
-        docs = Doctor.query.all()
+        query = db.session.query(Doctor)
+        docs = query.order_by(desc(Doctor.id))
         deps = Department.query.all()
         return render_template('doctor/index.html',docs=docs,deps=deps)
     return redirect('/login')
@@ -119,6 +140,29 @@ def add_doctor():
             db.session.commit()
             return redirect('/doctors')
         return 'Invalid request method!'
+    return redirect('/login')
+
+@app.route("/doctors/delete/<int:doc_id>",methods=['GET'])
+def delete_doctor(doc_id):
+    if authenticate():
+        Doctor.query.filter_by(id=doc_id).delete()
+        db.session.commit()
+        return redirect('/doctors')
+    return redirect('/login')
+
+@app.route("/doctors/edit/<int:doc_id>",methods=['POST'])
+def edit_doctor(doc_id):
+    if authenticate():
+        if request.method == 'POST':
+            Doctor.query.filter_by(id=doc_id).update({
+                'name':request.form['name'],
+                'lastname':request.form['lastname'],
+                'details':request.form['details'],
+                'dep_id':request.form['department']
+            })
+            db.session.commit()
+            return redirect('/doctors')
+        return redirect('/doctors')
     return redirect('/login')
 
 @app.route("/login", methods=['POST','GET'])
@@ -170,9 +214,10 @@ def logout():
         return redirect('/login')
     return render_template('/login')
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def page_not_found(path):
+@app.route("/", defaults={"path": ""})
+@app.route("/<string:path>")
+@app.route("/<path:path>")
+def catch_all(path):
     return render_template('404.html')
 
     
