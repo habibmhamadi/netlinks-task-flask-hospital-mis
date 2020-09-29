@@ -9,7 +9,7 @@ class Patient(db.Model):
     name = db.Column(db.String())
     lastname = db.Column(db.String())
     age = db.Column(db.Integer)
-    gender = db.Column(db.Integer)
+    gender = db.Column(db.String())
     date_registerd = db.Column(db.Date) 
 
     def __init__(self, name, lastname, age, gender, date_registerd):

@@ -23,4 +23,4 @@ class Department(db.Model):
             'id': self.id, 
             'name': self.name,
             'date_registered': self.date_registerd
-        }
+        } 

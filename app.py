@@ -1,7 +1,6 @@
 import os
 from flask import Flask, render_template, session, redirect, request, flash, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, desc
+from db import DB
 import secrets
 import base64
 import re
@@ -12,13 +11,7 @@ app.secret_key = secrets.token_urlsafe(16)
 
 app.config.from_object(os.environ['APP_SETTINGS'])
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-
-from models.doctor import Doctor
-from models.patient import Patient
-from models.appointment import Appointment
-from models.department import Department
-from models.auth import Auth
+db = DB()
 
 name_regex = re.compile(r'^[a-zA-Z]{1}.*')
 
@@ -28,23 +21,18 @@ def authenticate():
 @app.route("/")
 def home():
     if authenticate():
-        apps = Appointment.query.all()
-        deps = Department.query.all()
-        pats = Patient.query.all()
-        docs = Doctor.query.all()
-        return render_template('index.html',items=[
-            len(apps),
-            len(deps),
-            len(pats),
-            len(docs)
-        ])
+        apps = db.table('appointments').count()
+        deps = db.table('departments').count()
+        pats = db.table('patients').count()
+        docs = db.table('doctors').count()
+        return render_template('index.html',items=[apps,deps,pats,docs])
     return redirect('/login')
 
 @app.route("/appointments")
 def appointments():
     if authenticate():
-        apps = Appointment.query.all()
-        docs = Doctor.query.all()
+        apps = db.table('appointments').all()
+        docs = db.table('doctors').all()
         return render_template('appointment/index.html',apps=apps,docs=docs)
     return redirect('/login')
 
@@ -65,46 +53,51 @@ def add_appointment():
             if len(errs)>0:
                 flash(errs)
                 return redirect('/appointments')
-            new_app = Appointment(
-                patient_name=pat_name,
-                patient_lastname=pat_lastname,
-                doc_id=doc_id,
-                date_registerd=date+' '+time
-            )
-            db.session.add(new_app)
-            db.session.commit()
+            db.table('appointments').add(
+                ('patient_name','patient_lastname','doc_id','date_registerd'),
+                (pat_name,pat_lastname,doc_id,date+' '+time))
             return redirect('/appointments')
         return 'Invalid request method!'
     return redirect('/login')
 
-@app.route("/appointments/delete/<int:doc_id>",methods=['GET'])
-def delete_appointment(doc_id):
+@app.route("/appointments/delete/<int:Id>",methods=['GET'])
+def delete_appointment(Id):
     if authenticate():
-        Doctor.query.filter_by(id=doc_id).delete()
-        db.session.commit()
+        db.table('appointments').delete('id',Id)
         return redirect('/appointments')
     return redirect('/login')
 
-@app.route("/appointments/edit/<int:doc_id>",methods=['POST'])
-def edit_appointment(doc_id):
+@app.route("/appointments/edit/<int:Id>",methods=['POST'])
+def edit_appointment(Id):
     if authenticate():
         if request.method == 'POST':
-            Doctor.query.filter_by(id=doc_id).update({
-                'name':request.form['name'],
-                'lastname':request.form['lastname'],
-                'details':request.form['details'],
-                'dep_id':request.form['department']
-            })
-            db.session.commit()
-            return redirect('/doctors')
-        return redirect('/doctors')
+            doc_id = request.form['doctor']
+            pat_name = request.form['patient_name']
+            pat_lastname = request.form['patient_lastname']
+            date = request.form['date']
+            time = request.form['time']
+            errs = ''
+            if not name_regex.match(pat_name):
+                errs +='- Name should start with letters.\n'
+            if not name_regex.match(pat_lastname):
+                errs +='- Lastname should start with letters.'
+            if len(errs)>0:
+                flash(errs)
+                return redirect('/appointments')
+            
+            db.table('appointments').update(
+                ('name','lastname','dep_id','date_registerd'),
+                (pat_name,pat_lastname,doc_id,date+' '+time),
+                Id
+            )
+            return redirect('/appointments')
+        return redirect('/appointments')
     return redirect('/login')
 
 @app.route("/departments")
 def departments():
     if authenticate():
-        query = db.session.query(Department)
-        deps = query.order_by(desc(Department.id))
+        deps = db.table('departments').all(order_by='desc')
         return render_template('department/index.html',deps=deps)
     return redirect('/login')
 
@@ -114,14 +107,10 @@ def add_department():
         if request.method == 'POST':
             dep_name = request.form['department']
             if name_regex.match(dep_name):
-                query = Department.query.filter(func.lower(Department.name)==func.lower(dep_name)).first()
-                if query is None:
-                    new_dep = Department(
-                        name=dep_name,
-                        date_registerd=date.today()
-                    )
-                    db.session.add(new_dep)
-                    db.session.commit()
+                match = db.table('departments').where('LOWER(name)',dep_name.lower())
+                if match is None:
+                    db.table('departments').add(('name','date_registerd'),
+                                                (dep_name,date.today()))
                     return redirect('/departments')
                 flash('Department '+dep_name+' already exists!')
                 return redirect('/departments')
@@ -130,22 +119,26 @@ def add_department():
         return redirect('/departments')
     return redirect('/login')
 
-@app.route("/departments/delete/<int:dep_id>",methods=['GET'])
-def delete_department(dep_id):
+@app.route("/departments/delete/<int:Id>",methods=['GET'])
+def delete_department(Id):
     if authenticate():
-        Department.query.filter_by(id=dep_id).delete()
-        db.session.commit()
+        db.table('departments').delete('id',Id)
         return redirect('/departments')
     return redirect('/login')
 
-@app.route("/departments/edit/<int:dep_id>",methods=['POST'])
-def edit_department(dep_id):
+@app.route("/departments/edit/<int:Id>",methods=['POST'])
+def edit_department(Id):
     if authenticate():
         if request.method == 'POST':
-            Department.query.filter_by(id=dep_id).update({
-                'name':request.form['department']
-            })
-            db.session.commit()
+            dep_name = request.form['department']
+            if name_regex.match(dep_name):
+                match = db.table('departments').where('LOWER(name)',dep_name.lower())
+                if match is None:
+                    db.table('departments').update(('name',),(dep_name,),Id)
+                    return redirect('/departments')
+                flash('Department '+dep_name+' already exists!')
+                return redirect('/departments')
+            flash('Department name should start with letters!')
             return redirect('/departments')
         return redirect('/departments')
     return redirect('/login')
@@ -153,7 +146,7 @@ def edit_department(dep_id):
 @app.route("/patients")
 def patients():
     if authenticate():
-        pats = Patient.query.all()
+        pats = db.table('patients').all()
         return render_template('patient/index.html',pats=pats)
     return redirect('/login')
 
@@ -173,38 +166,42 @@ def add_patient():
             if len(errs)>0:
                 flash(errs)
                 return redirect('/patients')
-            new_pat = Patient(
-                name=pat_name,
-                lastname=pat_lastname,
-                age=pat_age,
-                gender=pat_gender,
-                date_registerd=date.today()
+            db.table('patients').add(
+                ('name','lastname','age','gender','date_registerd'),
+                (pat_name,pat_lastname,pat_age,pat_gender,date.today())
             )
-            db.session.add(new_pat)
-            db.session.commit()
             return redirect('/patients')
         return 'Invalid request method!'
     return redirect('/login')
 
-@app.route("/patients/delete/<int:pat_id>",methods=['GET'])
-def delete_patient(pat_id):
+@app.route("/patients/delete/<int:Id>",methods=['GET'])
+def delete_patient(Id):
     if authenticate():
-        Patient.query.filter_by(id=pat_id).delete()
-        db.session.commit()
+        db.table('patients').delete('id',Id)
         return redirect('/patients')
     return redirect('/login')
 
-@app.route("/patients/edit/<int:pat_id>",methods=['POST'])
-def edit_patient(pat_id):
+@app.route("/patients/edit/<int:Id>",methods=['POST'])
+def edit_patient(Id):
     if authenticate():
         if request.method == 'POST':
-            Patient.query.filter_by(id=pat_id).update({
-                'name':request.form['name'],
-                'lastname':request.form['lastname'],
-                'age':request.form['age'],
-                'gender':request.form['gender']
-            })
-            db.session.commit()
+            pat_gender = request.form['gender']
+            pat_name = request.form['name']
+            pat_lastname = request.form['lastname']
+            pat_age = request.form['age']
+            errs = ''
+            if not name_regex.match(pat_name):
+                errs +='- Name should start with letters.\n'
+            if not name_regex.match(pat_lastname):
+                errs +='- Lastname should start with letters.'
+            if len(errs)>0:
+                flash(errs)
+                return redirect('/patients')
+            db.table('patients').update(
+                ('name','lastname','age','gender'),
+                (pat_name,pat_lastname,pat_age,pat_gender),
+                Id
+            )
             return redirect('/patients')
         return redirect('/patients')
     return redirect('/login')
@@ -213,9 +210,8 @@ def edit_patient(pat_id):
 @app.route("/doctors")
 def doctors():
     if authenticate():
-        query = db.session.query(Doctor)
-        docs = query.order_by(desc(Doctor.id))
-        deps = Department.query.all()
+        docs = db.inner_join('doctors','departments','doctors.dep_id','departments.id')
+        deps = db.table('departments').all()    
         return render_template('doctor/index.html',docs=docs,deps=deps)
     return redirect('/login')
 
@@ -235,38 +231,42 @@ def add_doctor():
             if len(errs)>0:
                 flash(errs)
                 return redirect('/doctors')
-            new_doc = Doctor(
-                name=doc_name,
-                lastname=doc_lastname,
-                details=doc_details,
-                dep_id=dep_id,
-                date_registerd=date.today()
+            db.table('doctors').add(
+                ('name','lastname','details','dep_id','date_registerd'),
+                (doc_name,doc_lastname,doc_details,dep_id,date.today())
             )
-            db.session.add(new_doc)
-            db.session.commit()
             return redirect('/doctors')
         return 'Invalid request method!'
     return redirect('/login')
 
-@app.route("/doctors/delete/<int:doc_id>",methods=['GET'])
-def delete_doctor(doc_id):
+@app.route("/doctors/delete/<int:Id>",methods=['GET'])
+def delete_doctor(Id):
     if authenticate():
-        Doctor.query.filter_by(id=doc_id).delete()
-        db.session.commit()
+        db.table('doctors').delete('id',Id)
         return redirect('/doctors')
     return redirect('/login')
 
-@app.route("/doctors/edit/<int:doc_id>",methods=['POST'])
-def edit_doctor(doc_id):
+@app.route("/doctors/edit/<int:Id>",methods=['POST'])
+def edit_doctor(Id):
     if authenticate():
         if request.method == 'POST':
-            Doctor.query.filter_by(id=doc_id).update({
-                'name':request.form['name'],
-                'lastname':request.form['lastname'],
-                'details':request.form['details'],
-                'dep_id':request.form['department']
-            })
-            db.session.commit()
+            dep_id = request.form['department']
+            doc_name = request.form['name']
+            doc_lastname = request.form['lastname']
+            doc_details = request.form['details']
+            errs = ''
+            if not name_regex.match(doc_name):
+                errs +='- Name should start with letters.\n'
+            if not name_regex.match(doc_lastname):
+                errs +='- Lastname should start with letters.'
+            if len(errs)>0:
+                flash(errs)
+                return redirect('/doctors')
+            db.table('doctors').update(
+                ('name','lastname','details','dep_id'),
+                (doc_name,doc_lastname,doc_details,dep_id),
+                Id
+            )
             return redirect('/doctors')
         return redirect('/doctors')
     return redirect('/login')
@@ -279,12 +279,12 @@ def login():
         eml = request.form['email']
         pwd = request.form['password']
         pwd = base64.b64encode(pwd.encode("utf-8"))
-        res = Auth.query.filter_by(email=eml).filter_by(password=str(pwd)).first()
+        res = db.table('auths').where_and('email','password',(eml,str(pwd)))
         if res is None:
             flash('Incorrect credentials')
             return redirect('/login')
         else:
-            session['fullname'] = res.fullname
+            session['fullname'] = res['fullname']
             return redirect('/')
     return render_template('auth/login.html')
 
@@ -297,15 +297,10 @@ def register():
         eml = request.form['email']
         pwd = request.form['password']
         pwd = base64.b64encode(pwd.encode("utf-8"))
-        res = Auth.query.filter_by(email=eml).first()
+        res = db.table('auths').where('email',eml)
         if res is None:
-            newAuth = Auth(
-                fullname = fname,
-                email = eml,
-                password = str(pwd)
-            )
-            db.session.add(newAuth)
-            db.session.commit()
+            db.table('auths').add(('fullname','email','password'),
+                                  (fname,eml,str(pwd)))
             session['fullname'] = fname
             return redirect('/')
         else: 
@@ -327,5 +322,5 @@ def catch_all(path):
     return render_template('404.html')
 
     
-# if __name__ == "__main__":
-#     app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True)

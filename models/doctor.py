@@ -10,6 +10,7 @@ class Doctor(db.Model):
     name = db.Column(db.String())
     lastname = db.Column(db.String())
     details = db.Column(db.String())
+    appointments = db.relationship('Appointment', backref='doctors', passive_deletes=True, lazy=True)
     dep_id = db.Column(db.Integer, db.ForeignKey('departments.id',ondelete='CASCADE'))
     date_registerd = db.Column(db.Date) 
 
@@ -21,7 +22,7 @@ class Doctor(db.Model):
         self.dep_id = dep_id
 
     def __repr__(self):
-        return '<id {}>'.format(self.id)
+        return '<id {}>'.format(self.id) 
     
     def serialize(self):
         return {

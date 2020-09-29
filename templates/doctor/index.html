@@ -14,8 +14,8 @@
     </div>
     <div>
 
-        <div>
             {% if docs[0] %}
+          <div class="overflow-x-scroll lg:overflow-x-hidden">
             <table class="table-auto w-full">
                 <thead>
                     <tr class="">
@@ -33,11 +33,9 @@
                         <td class="px-6 py-2">{{loop.index}}</td>
                         <td class="px-6 py-2">{{i.name}}</td>
                         <td class="px-6 py-2">{{i.lastname}}</td>
-                        <td class="px-6 py-2">{{i.departments.name}}</td>
+                        <td class="px-6 py-2">{{i.name}}</td>
                         <td class="px-6 py-2">
-                            <a href="doctors/delete/{{ i.id }}" class="mr-2">
-                              <i class="fa fa-trash text-gray-600"></i>
-                            </a>
+                          <i onclick="deleteItem('{{i.id}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
                             <i onclick="toggleForm('{{i.id}}','{{i.name}}','{{i.lastname}}','{{i.details}}','Edit Doctor:','/doctors/edit/')" 
                                class="fa fa-pencil cursor-pointer text-gray-600 modal-open">
                             </i>
@@ -48,11 +46,9 @@
                         <td class="px-6 py-2">{{loop.index}}</td>
                         <td class="px-6 py-2">{{i.name}}</td>
                         <td class="px-6 py-2">{{i.lastname}}</td>
-                        <td class="px-6 py-2">{{i.departments.name}}</td>
+                        <td class="px-6 py-2">{{i.name}}</td>
                         <td class="px-6 py-2">
-                            <a href="doctors/delete/{{ i.id }}" class="mr-2">
-                              <i class="fa fa-trash text-gray-600"></i>
-                            </a>
+                          <i onclick="deleteItem('{{i.id}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
                             <i onclick="toggleForm('{{i.id}}','{{i.name}}','{{i.lastname}}','{{i.details}}','Edit Doctor:','/doctors/edit/')" 
                                class="fa fa-pencil cursor-pointer text-gray-600 modal-open">
                             </i>
@@ -62,12 +58,13 @@
                     {% endfor %}
                 </body>
             </table>
+          </div>
             {% else %}
             <p class="w-full text-center mt-20">No Doctors Registered!</p>
             {% endif %}
-        </div>
+        
 
-        <!-- Modal for add -->
+        <!-- Modal for add and edit-->
     <div class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center">
         <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
         
@@ -101,7 +98,7 @@
                     </div>
                     <div class="flex flex-col my-2">
                         <label for="Lastname">Lastname:</label>
-                        <input type="text" name="lastname" placeholder="Name" required class="input-lastname border border-gray-300 mt-1 px-2 py-1 rounded">
+                        <input type="text" name="lastname" placeholder="Lastname" required class="input-lastname border border-gray-300 mt-1 px-2 py-1 rounded">
                     </div>
                     <div class="flex flex-col my-2">
                         <label for="department">Department:</label>
@@ -128,6 +125,42 @@
         </div>
       </div>
 
+       <!-- Modal for delete -->
+       <div class="popup opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center">
+        <div class="popup-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+        
+        <div class="popup-container bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
+          
+          <div class="popup-close absolute top-0 right-0 cursor-pointer flex flex-col items-center mt-4 mr-4 text-white text-sm z-50">
+            <svg class="fill-current text-white" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+              <path d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z"></path>
+            </svg>
+            <span class="text-sm">(Esc)</span>
+          </div>
+    
+          <!-- Add margin if you want to see some of the overlay behind the popup-->
+          <div class="popup-content py-4 text-left px-6">
+            <!--Title-->
+            <div class="flex justify-between items-center pb-3">
+              <p class="text-2xl font-bold popup-title">Confirm:</p>
+              <div class="popup-close cursor-pointer z-50">
+                <svg class="fill-current text-black" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+                  <path d="M14.53 4.53l-1.06-1.06L9 7.94 4.53 3.47 3.47 4.53 7.94 9l-4.47 4.47 1.06 1.06L9 10.06l4.47 4.47 1.06-1.06L10.06 9z"></path>
+                </svg>
+              </div>
+            </div>
+                Doctor will be deleted?
+                <!--Footer-->
+                <div class="flex justify-end mt-5">
+                <a href="/doctors/delete/1" class="deleteLink pt-2 px-4 rounded-lg bg-red-600 px-2 py-1 mr-2 text-white" type="submit">Delete</a>
+                <button type="button" class="popup-close p-2 text-grey-500">Close</button>
+                </div>
+            
+          </div>
+        </div>
+      </div>
+
+
     </div>
 </div>
 
@@ -147,6 +180,10 @@
               modalForm.reset()
           }
         }
+    const deleteItem = (id) => {
+        const deleteLink = document.querySelector('.deleteLink')
+        deleteLink.href = '/doctors/delete/'+id
+    }
 </script>
 
 {% endblock %}
