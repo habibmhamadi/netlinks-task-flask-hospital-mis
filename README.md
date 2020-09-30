@@ -12,9 +12,18 @@ A web based hospital management system built in [flask](flask.palletsprojects.co
 - Uses [Postgresql](https://postgresql.org) as database
 
 
+## Required Dependency
+
+install *psycopg2* for database connection
+
+```
+pip3 install psycopg2
+```
+
 ## Usage
 
-clone the project
+After cloning repo open the *.env* file and paste the APP_SETTINGS & DATABASE_URL to console.
+then run the *app.py* file.
 
 
 
