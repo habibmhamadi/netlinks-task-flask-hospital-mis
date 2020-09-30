@@ -31,23 +31,23 @@
             <h3 class="font-bold text-red-600 text-xl">HOSPITAL MIS</h3>
             <div id="menu" class="hidden sm:flex mt-4 sm:mt-12 flex-col pr-4 list-none text-gray-700" >
                     <a href="/" class="{% if url_for(request.endpoint)=='/' %}text-black{% endif %} py-2 flex items-center hover:text-black" >
-                        <i class="fa fa-home mr-3"></i>
+                        <i class=" fa fa-home mr-3"></i>
                         <p>Home</p>
                     </a>
                     <a href="/appointments" class="{% if url_for(request.endpoint)=='/appointments' %}text-black{% endif %} py-2 flex items-center hover:text-black" >
-                        <i class="fa fa-list-alt mr-3"></i>
+                        <i class="fa fa-list-alt mr-3 "></i>
                         <p>Appointments</p>
                     </a>
                     <a href="/departments" class="{% if url_for(request.endpoint)=='/departments' %}text-black{% endif %} py-2 flex items-center hover:text-black" >
-                        <i class="fa fa-building mr-3"></i>
+                        <i class="fa fa-building mr-3 "></i>
                         <p>Departments</p>
                     </a>
                     <a href="patients" class="{% if url_for(request.endpoint)=='/patients' %}text-black{% endif %} py-2 flex items-center hover:text-black" >
-                        <i class="fa fa-wheelchair mr-3"></i>
+                        <i class="fa fa-wheelchair mr-3 "></i>
                         <p>Patients</p>
                     </a>
                     <a href="doctors" class="{% if url_for(request.endpoint)=='/doctors' %}text-black{% endif %} py-2 flex items-center hover:text-black" >
-                        <i class="fa fa-user-md mr-3"></i>
+                        <i class="fa fa-user-md mr-3 "></i>
                         <p>Doctors</p>
                     </a>
                     <div style="width: 100%; height: 1px; background: #e4e4e4; margin-top:5px;"></div>

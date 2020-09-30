@@ -32,12 +32,12 @@
                 {% if loop.index%2==0 %}
                 <tr class="bg-gray-100">
                     <td class="px-6 py-2">{{loop.index}}</td>
-                    <td class="px-6 py-2">{{i.name}}</td>
-                    <td class="px-6 py-2">{{i.doctors|length}}</td>
-                    <td class="px-6 py-2">{{i.date_registerd}}</td>
+                    <td class="px-6 py-2">{{i.dep_name}}</td>
+                    <td class="px-6 py-2">{{i.doctors}}</td>
+                    <td class="px-6 py-2">{{i.dep_date}}</td>
                     <td class="px-6 py-2">
                       <i onclick="deleteItem('{{i.id}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
-                      <i onclick="toggleForm('{{i.id}}','{{i.name}}','Edit Department:','/departments/edit/')" 
+                      <i onclick="toggleForm('{{i.id}}','{{i.dep_name}}','Edit Department:','/departments/edit/')" 
                          class="fa fa-pencil cursor-pointer text-gray-600 modal-open">
                       </i>
                     </td>
@@ -45,12 +45,12 @@
                 {% else %}
                 <tr>
                     <td class="px-6 py-2">{{loop.index}}</td>
-                    <td class="px-6 py-2">{{i.name}}</td>
-                    <td class="px-6 py-2">{{i.doctors|length}}</td>
-                    <td class="px-6 py-2">{{i.date_registerd}}</td>
+                    <td class="px-6 py-2">{{i.dep_name}}</td>
+                    <td class="px-6 py-2">{{i.doctors}}</td>
+                    <td class="px-6 py-2">{{i.dep_date}}</td>
                     <td class="px-6 py-2">
                       <i onclick="deleteItem('{{i.id}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
-                      <i onclick="toggleForm('{{i.id}}','{{i.name}}','Edit Department:','/departments/edit/')" class="fa fa-pencil cursor-pointer text-gray-600 modal-open"></i>
+                      <i onclick="toggleForm('{{i.id}}','{{i.dep_name}}','Edit Department:','/departments/edit/')" class="fa fa-pencil cursor-pointer text-gray-600 modal-open"></i>
                     </td>
                 </tr>
                 {% endif %}

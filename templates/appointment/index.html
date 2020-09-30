@@ -10,7 +10,7 @@
          {% endif %}  
         {% endwith %}
     <div class="flex justify-end my-8">
-        <button  class="rounded-lg border border-red-600 px-2 py-1 text-red-600 modal-open">Add</button>
+        <button onclick="toggleForm('','','','','Add Appointment:','/appointments/add')" class="rounded-lg border border-red-600 px-2 py-1 text-red-600 modal-open">Add</button>
     </div>
     <div>
 
@@ -32,11 +32,11 @@
                     <tr class="bg-gray-100">
                         <td class="px-6 py-2">{{loop.index}}</td>
                         <td class="px-6 py-2">{{i.patient_name}} {{i.patient_lastname}}</td>
-                        <td class="px-6 py-2">{{i.doctors.name}} {{i.doctors.lastname}}</td>
-                        <td class="px-6 py-2">{{i.date_registerd}}</td>
+                        <td class="px-6 py-2">{{i.doc_name}} {{i.doc_lastname}}</td>
+                        <td class="px-6 py-2">{{i.date}}</td>
                         <td class="px-6 py-2">
-                          <i onclick="deleteItem('{{i.id}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
-                            <i onclick="toggleForm('{{i.id}}','{{i.name}}','{{i.lastname}}','{{i.details}}','Edit Doctor:','/doctors/edit/')" 
+                          <i onclick="deleteItem('{{i[0]}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
+                            <i onclick="toggleForm('{{i[0]}}','{{i.patient_name}}','{{i.patient_lastname}}','{{i.date}}','Edit Appointment:','/appointments/edit/')" 
                                class="fa fa-pencil cursor-pointer text-gray-600 modal-open">
                             </i>
                           </td>
@@ -45,11 +45,11 @@
                     <tr>
                       <td class="px-6 py-2">{{loop.index}}</td>
                       <td class="px-6 py-2">{{i.patient_name}} {{i.patient_lastname}}</td>
-                      <td class="px-6 py-2">{{i.doctors.name}} {{i.doctors.lastname}}</td>
-                      <td class="px-6 py-2">{{i.date_registerd}}</td>
+                      <td class="px-6 py-2">{{i.doc_name}} {{i.doc_lastname}}</td>
+                      <td class="px-6 py-2">{{i.date}}</td>
                         <td class="px-6 py-2">
-                          <i onclick="deleteItem('{{i.id}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
-                            <i onclick="toggleForm('{{i.id}}','{{i.name}}','{{i.lastname}}','{{i.details}}','Edit Doctor:','/doctors/edit/')" 
+                          <i onclick="deleteItem('{{i[0]}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
+                            <i onclick="toggleForm('{{i[0]}}','{{i.patient_name}}','{{i.patient_lastname}}','{{i.date}}','Edit Appointment:','/appointments/edit/')" 
                                class="fa fa-pencil cursor-pointer text-gray-600 modal-open">
                             </i>
                           </td>
@@ -104,7 +104,7 @@
                         <label for="doctor">Doctor:</label>
                         <select required name="doctor" class="p-2 rounded bg-white border border-gray-300">
                             {% for i in docs: %}
-                            <option value="{{ i.id }}">{{i.name}} {{i.lastname}}</option>
+                            <option value="{{ i.id }}">{{i.doc_name}} {{i.doc_lastname}}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -172,15 +172,22 @@
 </div>
 
 <script>
-    const toggleForm = (id,name,lastname,formTitle,url) => {
+    const toggleForm = (id,name,lastname,date,formTitle,url) => {
           const modalTitle = document.querySelector('.modal-title')
           const modalForm = document.querySelector('.modal-form')
-          const inputName = document.querySelector('.input-patient_name')
-          const inputLastname = document.querySelector('.input-patient_lastname')
+          const inputName = document.querySelector('.input-patient-name')
+          const inputLastname = document.querySelector('.input-patient-lastname')
+          const inputDate = document.querySelector('.input-date')
+          const inputTime = document.querySelector('.input-time')
           modalTitle.innerHTML = formTitle
           modalForm.action = url+id
           inputName.value = name
           inputLastname.value = lastname
+          if (date!=''){
+            arr = date.split(' ')
+            inputDate.valueAsDate = new Date(arr[0])
+            inputTime.value = arr[1].substring(0,arr[1].length-3)
+          }
           if (id==''){
               modalForm.reset()
           }

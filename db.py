@@ -19,11 +19,11 @@ class DB:
         self.table_name = table_name
         return self
     
-    def all(self,orderKey,orderVal):
+    def get(self,order='ASC',single=False):
         self.cursor.execute('SELECT * FROM '
                             +self.table_name
-                            +' ORDER BY '+orderKey+' '+orderVal)
-        return self.cursor.fetchall()
+                            +' ORDER BY id '+order)
+        return self.cursor.fetchone() if single else self.cursor.fetchall()
     
     def where(self,field,value,single=True):
         self.cursor.execute('SELECT * FROM '
@@ -71,13 +71,13 @@ class DB:
         self.cursor.execute('SELECT COUNT(id) FROM '+self.table_name)
         return self.cursor.fetchone()[0]
     
-    def inner_join(self,col_name,table_A,tableB,id_A,id_B):
-        self.cursor.execute('SELECT '+col_name+' FROM '+table_A+' inner join '
-                            +tableB+' on '+id_A+'='+id_B+' ORDER BY '+id_A)
+    def inner_join(self,table_A,tableB,id_A,id_B):
+        self.cursor.execute('SELECT * FROM '+table_A+' inner join '
+                            +tableB+' on '+id_A+'='+id_B+' ORDER BY '+id_A+' DESC')
         return self.cursor.fetchall()
     
 
         
-db = DB()
+# db = DB()
 
-print(db.inner_join('dep_name,doc_name','doctors','departments','doctors.doc_dep_id','departments.dep_id'))
+# print(db.inner_join('departments','doctors','departments.id','doctors.dep_id'))

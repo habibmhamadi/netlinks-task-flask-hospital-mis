@@ -10,7 +10,7 @@
          {% endif %}  
         {% endwith %}
     <div class="flex justify-end my-8">
-        <button onclick="toggleForm('','','','','Add Patient:','/patients/add')" class="rounded-lg border border-red-600 px-2 py-1 text-red-600 modal-open">Add</button>
+        <button onclick="toggleForm('','','','','Male','Add Patient:','/patients/add')" class="rounded-lg border border-red-600 px-2 py-1 text-red-600 modal-open">Add</button>
     </div>
     <div>
             {% if pats[0] %}
@@ -31,27 +31,27 @@
                     {% if loop.index%2==0 %}
                     <tr class="bg-gray-100">
                         <td class="px-6 py-2">{{loop.index}}</td>
-                        <td class="px-6 py-2">{{i.name}}</td>
-                        <td class="px-6 py-2">{{i.lastname}}</td>
-                        <td class="px-6 py-2">{{i.age}}</td>
-                        <td class="px-6 py-2">{{i.gender}}</td>
+                        <td class="px-6 py-2">{{i.p_name}}</td>
+                        <td class="px-6 py-2">{{i.p_lastname}}</td>
+                        <td class="px-6 py-2">{{i.p_age}}</td>
+                        <td class="px-6 py-2">{{i.p_gender}}</td>
                         <td class="px-6 py-2">
                             <i onclick="deleteItem('{{i.id}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
-                            <i onclick="toggleForm('{{i.id}}','{{i.name}}','{{i.lastname}}','{{i.age}}','Edit Patient:','/patients/edit/')" 
+                            <i onclick="toggleForm('{{i.id}}','{{i.p_name}}','{{i.p_lastname}}','{{i.p_age}}','{{i.p_gender}}','Edit Patient:','/patients/edit/')" 
                                class="fa fa-pencil cursor-pointer text-gray-600 modal-open">
                             </i>
                           </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td class="px-6 py-2">{{loop.index}}</td>
-                        <td class="px-6 py-2">{{i.name}}</td>
-                        <td class="px-6 py-2">{{i.lastname}}</td>
-                        <td class="px-6 py-2">{{i.age}}</td>
-                        <td class="px-6 py-2">{{i.gender}}</td>
+                      <td class="px-6 py-2">{{loop.index}}</td>
+                      <td class="px-6 py-2">{{i.p_name}}</td>
+                      <td class="px-6 py-2">{{i.p_lastname}}</td>
+                      <td class="px-6 py-2">{{i.p_age}}</td>
+                      <td class="px-6 py-2">{{i.p_gender}}</td>
                         <td class="px-6 py-2">
                             <i onclick="deleteItem('{{i.id}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
-                            <i onclick="toggleForm('{{i.id}}','{{i.name}}','{{i.lastname}}','{{i.age}}','Edit Patient:','/patients/edit/')" 
+                            <i onclick="toggleForm('{{i.id}}','{{i.p_name}}','{{i.p_lastname}}','{{i.p_age}}','{{i.p_gender}}','Edit Patient:','/patients/edit/')" 
                                class="fa fa-pencil cursor-pointer text-gray-600 modal-open">
                             </i>
                           </td>
@@ -108,7 +108,7 @@
                     </div>
                     <div class="flex flex-col my-2">
                         <label for="gender">Gender:</label>
-                        <select required name="gender" class="p-2 rounded bg-white border border-gray-300">
+                        <select required name="gender" class="input-gender p-2 rounded bg-white border border-gray-300">
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                         </select>
@@ -168,17 +168,20 @@
 
 
 <script>
-    const toggleForm = (id,name,lastname,age,formTitle,url) => {
+    const toggleForm = (id,name,lastname,age,gender,formTitle,url) => {
           const modalTitle = document.querySelector('.modal-title')
           const modalForm = document.querySelector('.modal-form')
           const inputName = document.querySelector('.input-name')
           const inputLastname = document.querySelector('.input-lastname')
           const inputAge = document.querySelector('.input-age')
+          const inputGender = document.querySelector('.input-gender')
           modalTitle.innerHTML = formTitle
           modalForm.action = url+id
           inputName.value = name
           inputLastname.value = lastname
           inputAge.value = age
+          inputGender.value = gender
+          console.log(gender)
           if (id==''){
               modalForm.reset()
           }
