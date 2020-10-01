@@ -9,9 +9,10 @@
                {% endfor %}  
          {% endif %}  
         {% endwith %}
-    <div class="flex justify-end my-8">
+    <div class="flex justify-end my-8"> {% if 'admin' in session['role'] %}
         <button onclick="toggleForm('','','','','Add Appointment:','/appointments/add')" class="rounded-lg border border-red-600 px-2 py-1 text-red-600 modal-open">Add</button>
-    </div>
+        {% endif %}
+      </div>
     <div>
 
             {% if apps[0] %}
@@ -23,7 +24,9 @@
                         <th class="px-6 py-3">Patient</th>
                         <th class="px-6 py-3">Doctor</th>
                         <th class="px-6 py-3">Date</th>
+                        {% if 'admin' in session['role'] %}
                         <th class="px-6 py-3">Actions</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <body style="text-align: left;">
@@ -34,12 +37,14 @@
                         <td class="px-6 py-2">{{i.patient_name}} {{i.patient_lastname}}</td>
                         <td class="px-6 py-2">{{i.doc_name}} {{i.doc_lastname}}</td>
                         <td class="px-6 py-2">{{i.date}}</td>
+                        {% if 'admin' in session['role'] %}
                         <td class="px-6 py-2">
                           <i onclick="deleteItem('{{i[0]}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
                             <i onclick="toggleForm('{{i[0]}}','{{i.patient_name}}','{{i.patient_lastname}}','{{i.date}}','Edit Appointment:','/appointments/edit/')" 
                                class="fa fa-pencil cursor-pointer text-gray-600 modal-open">
                             </i>
                           </td>
+                        {% endif %}
                     </tr>
                     {% else %}
                     <tr>
@@ -47,12 +52,14 @@
                       <td class="px-6 py-2">{{i.patient_name}} {{i.patient_lastname}}</td>
                       <td class="px-6 py-2">{{i.doc_name}} {{i.doc_lastname}}</td>
                       <td class="px-6 py-2">{{i.date}}</td>
+                      {% if 'admin' in session['role'] %}
                         <td class="px-6 py-2">
                           <i onclick="deleteItem('{{i[0]}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
                             <i onclick="toggleForm('{{i[0]}}','{{i.patient_name}}','{{i.patient_lastname}}','{{i.date}}','Edit Appointment:','/appointments/edit/')" 
                                class="fa fa-pencil cursor-pointer text-gray-600 modal-open">
                             </i>
                           </td>
+                      {% endif %}
                     </tr>
                     {% endif %}
                     {% endfor %}

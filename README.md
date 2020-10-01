@@ -22,7 +22,11 @@ pip3 install psycopg2
 
 ## Usage
 
-After cloning repo open the *.env* file and paste the APP_SETTINGS & DATABASE_URL to console.
+After cloning repo open the *.env* file and paste the **APP_SETTINGS** & **DATABASE_URL** to console.
+```
+export APP_SETTINGS="config.DevelopmentConfig"
+export DATABASE_URL="postgresql:///hospital_db"
+```
 then run the *app.py* file.
 
 

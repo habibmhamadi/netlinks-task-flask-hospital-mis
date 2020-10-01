@@ -19,17 +19,23 @@ present = datetime.now()
 
 def authenticate():
     """Checks if user is logged in
-
-    Returns:
-        (boolean): if session has user or not
     """
+    
     return 'fullname' in session
+
+
+def admin():
+    """Check if user role is admin or normal user
+    """
+    
+    return session['role'] == 'admin'
 
 
 @app.route("/")
 def home():
     """Renders home page with count of each table records
     """
+    
     if authenticate():
         apps = db.table('appointments').count()
         deps = db.table('departments').count()
@@ -43,6 +49,7 @@ def home():
 def appointments():
     """Renders appointments page
     """
+    
     if authenticate():
         apps = db.inner_join('appointments', 'doctors',
                              'appointments.doc_id', 'doctors.id')
@@ -55,34 +62,37 @@ def appointments():
 def add_appointment():
     """Adds a new appointment
     """
+    
     if authenticate():
-        if request.method == 'POST':
-            doc_id = request.form['doctor']
-            pat_name = request.form['patient_name']
-            pat_lastname = request.form['patient_lastname']
-            date = request.form['date']
-            time = request.form['time']
-            app_date = datetime.strptime(date+' '+time, '%Y-%m-%d %H:%M')
-            last_taken = db.table('appointments').get(
-                order='DESC', single=True)
-            errs = ''
-            if last_taken:
-                if not last_taken['date'] < app_date-timedelta(minutes=1):
-                    errs += '- Date must be greater then last appointment.\n'
-            elif app_date < present:
-                errs += '- Date must be greater than present.\n'
-            if not name_regex.match(pat_name):
-                errs += '- Name should start with letters.\n'
-            if not name_regex.match(pat_lastname):
-                errs += '- Lastname should start with letters.'
-            if len(errs) > 0:
-                flash(errs)
+        if admin():
+            if request.method == 'POST':
+                doc_id = request.form['doctor']
+                pat_name = request.form['patient_name']
+                pat_lastname = request.form['patient_lastname']
+                date = request.form['date']
+                time = request.form['time']
+                app_date = datetime.strptime(date+' '+time, '%Y-%m-%d %H:%M')
+                last_taken = db.table('appointments').get(
+                    order='DESC', single=True)
+                errs = ''
+                if last_taken:
+                    if not last_taken['date'] < app_date-timedelta(minutes=1):
+                        errs += '- Date must be greater then last appointment.\n'
+                elif app_date < present:
+                    errs += '- Date must be greater than present.\n'
+                if not name_regex.match(pat_name):
+                    errs += '- Name should start with letters.\n'
+                if not name_regex.match(pat_lastname):
+                    errs += '- Lastname should start with letters.'
+                if len(errs) > 0:
+                    flash(errs)
+                    return redirect('/appointments')
+                db.table('appointments').add(
+                    ('patient_name', 'patient_lastname', 'doc_id', 'date'),
+                    (pat_name, pat_lastname, doc_id, date+' '+time))
                 return redirect('/appointments')
-            db.table('appointments').add(
-                ('patient_name', 'patient_lastname', 'doc_id', 'date'),
-                (pat_name, pat_lastname, doc_id, date+' '+time))
-            return redirect('/appointments')
-        return 'Invalid request method!'
+            return 'Invalid request method!'
+        else: return redirect('/appointments')
     return redirect('/login')
 
 
@@ -90,9 +100,12 @@ def add_appointment():
 def delete_appointment(Id):
     """Deletes and specific appointment
     """
+    
     if authenticate():
-        db.table('appointments').delete('id', Id)
-        return redirect('/appointments')
+        if admin():
+            db.table('appointments').delete('id', Id)
+            return redirect('/appointments')
+        else: return redirect('/appointments')
     return redirect('/login')
 
 
@@ -100,33 +113,36 @@ def delete_appointment(Id):
 def edit_appointment(Id):
     """Edits an specific appointment
     """
+    
     if authenticate():
-        if request.method == 'POST':
-            doc_id = request.form['doctor']
-            pat_name = request.form['patient_name']
-            pat_lastname = request.form['patient_lastname']
-            date = request.form['date']
-            time = request.form['time']
-            errs = ''
-            app_date = datetime.strptime(date+' '+time, '%Y-%m-%d %H:%M')
-            errs = ''
-            if app_date < present:
-                errs += '- Date should be greater than present.\n'
-            if not name_regex.match(pat_name):
-                errs += '- Name should start with letters.\n'
-            if not name_regex.match(pat_lastname):
-                errs += '- Lastname should start with letters.'
-            if len(errs) > 0:
-                flash(errs)
-                return redirect('/appointments')
+        if admin():
+            if request.method == 'POST':
+                doc_id = request.form['doctor']
+                pat_name = request.form['patient_name']
+                pat_lastname = request.form['patient_lastname']
+                date = request.form['date']
+                time = request.form['time']
+                errs = ''
+                app_date = datetime.strptime(date+' '+time, '%Y-%m-%d %H:%M')
+                errs = ''
+                if app_date < present:
+                    errs += '- Date should be greater than present.\n'
+                if not name_regex.match(pat_name):
+                    errs += '- Name should start with letters.\n'
+                if not name_regex.match(pat_lastname):
+                    errs += '- Lastname should start with letters.'
+                if len(errs) > 0:
+                    flash(errs)
+                    return redirect('/appointments')
 
-            db.table('appointments').update(
-                ('patient_name', 'patient_lastname', 'doc_id', 'date'),
-                (pat_name, pat_lastname, doc_id, date+' '+time),
-                Id
-            )
+                db.table('appointments').update(
+                    ('patient_name', 'patient_lastname', 'doc_id', 'date'),
+                    (pat_name, pat_lastname, doc_id, date+' '+time),
+                    Id
+                )
+                return redirect('/appointments')
             return redirect('/appointments')
-        return redirect('/appointments')
+        else: return redirect('/appointments')
     return redirect('/login')
 
 
@@ -134,6 +150,7 @@ def edit_appointment(Id):
 def departments():
     """Returns departments page
     """
+    
     if authenticate():
         deps = db.table('departments').get(order='desc')
         for i in range(len(deps)):
@@ -149,21 +166,24 @@ def departments():
 def add_department():
     """Adds an specific department
     """
+    
     if authenticate():
-        if request.method == 'POST':
-            dep_name = request.form['department']
-            if name_regex.match(dep_name):
-                match = db.table('departments').where(
-                    'LOWER(dep_name)', dep_name.lower())
-                if match is None:
-                    db.table('departments').add(('dep_name', 'dep_date'),
-                                                (dep_name, date.today()))
+        if admin():
+            if request.method == 'POST':
+                dep_name = request.form['department']
+                if name_regex.match(dep_name):
+                    match = db.table('departments').where(
+                        'LOWER(dep_name)', dep_name.lower())
+                    if match is None:
+                        db.table('departments').add(('dep_name', 'dep_date'),
+                                                    (dep_name, date.today()))
+                        return redirect('/departments')
+                    flash('Department '+dep_name+' already exists!')
                     return redirect('/departments')
-                flash('Department '+dep_name+' already exists!')
+                flash('Department name should start with letters!')
                 return redirect('/departments')
-            flash('Department name should start with letters!')
             return redirect('/departments')
-        return redirect('/departments')
+        else: return redirect('/departments')
     return redirect('/login')
 
 
@@ -171,9 +191,12 @@ def add_department():
 def delete_department(Id):
     """Deletes an specific department
     """
+    
     if authenticate():
-        db.table('departments').delete('id', Id)
-        return redirect('/departments')
+        if admin():
+            db.table('departments').delete('id', Id)
+            return redirect('/departments')
+        else: return redirect('/departments')
     return redirect('/login')
 
 
@@ -181,21 +204,24 @@ def delete_department(Id):
 def edit_department(Id):
     """Edits an specific department
     """
+    
     if authenticate():
-        if request.method == 'POST':
-            dep_name = request.form['department']
-            if name_regex.match(dep_name):
-                match = db.table('departments').where(
-                    'LOWER(dep_name)', dep_name.lower())
-                if match is None:
-                    db.table('departments').update(
-                        ('dep_name',), (dep_name,), Id)
+        if admin():
+            if request.method == 'POST':
+                dep_name = request.form['department']
+                if name_regex.match(dep_name):
+                    match = db.table('departments').where(
+                        'LOWER(dep_name)', dep_name.lower())
+                    if match is None:
+                        db.table('departments').update(
+                            ('dep_name',), (dep_name,), Id)
+                        return redirect('/departments')
+                    flash('Department '+dep_name+' already exists!')
                     return redirect('/departments')
-                flash('Department '+dep_name+' already exists!')
+                flash('Department name should start with letters!')
                 return redirect('/departments')
-            flash('Department name should start with letters!')
             return redirect('/departments')
-        return redirect('/departments')
+        else: redirect('/departments')
     return redirect('/login')
 
 
@@ -203,6 +229,7 @@ def edit_department(Id):
 def patients():
     """Returns patients page
     """
+    
     if authenticate():
         pats = db.table('patients').get()
         return render_template('patient/index.html', pats=pats)
@@ -213,26 +240,29 @@ def patients():
 def add_patient():
     """Adds an specific patient
     """
+    
     if authenticate():
-        if request.method == 'POST':
-            pat_gender = request.form['gender']
-            pat_name = request.form['name']
-            pat_lastname = request.form['lastname']
-            pat_age = request.form['age']
-            errs = ''
-            if not name_regex.match(pat_name):
-                errs += '- Name should start with letters.\n'
-            if not name_regex.match(pat_lastname):
-                errs += '- Lastname should start with letters.'
-            if len(errs) > 0:
-                flash(errs)
+        if admin():
+            if request.method == 'POST':
+                pat_gender = request.form['gender']
+                pat_name = request.form['name']
+                pat_lastname = request.form['lastname']
+                pat_age = request.form['age']
+                errs = ''
+                if not name_regex.match(pat_name):
+                    errs += '- Name should start with letters.\n'
+                if not name_regex.match(pat_lastname):
+                    errs += '- Lastname should start with letters.'
+                if len(errs) > 0:
+                    flash(errs)
+                    return redirect('/patients')
+                db.table('patients').add(
+                    ('p_name', 'p_lastname', 'p_age', 'p_gender', 'p_date'),
+                    (pat_name, pat_lastname, pat_age, pat_gender, date.today())
+                )
                 return redirect('/patients')
-            db.table('patients').add(
-                ('p_name', 'p_lastname', 'p_age', 'p_gender', 'p_date'),
-                (pat_name, pat_lastname, pat_age, pat_gender, date.today())
-            )
-            return redirect('/patients')
-        return 'Invalid request method!'
+            return 'Invalid request method!'
+        else: return redirect('/patients')
     return redirect('/login')
 
 
@@ -240,9 +270,12 @@ def add_patient():
 def delete_patient(Id):
     """Deletes an specific patient
     """
+    
     if authenticate():
-        db.table('patients').delete('id', Id)
-        return redirect('/patients')
+        if admin():
+            db.table('patients').delete('id', Id)
+            return redirect('/patients')
+        else: return redirect('/patients')
     return redirect('/login')
 
 
@@ -250,27 +283,30 @@ def delete_patient(Id):
 def edit_patient(Id):
     """Edits an specific patient
     """
+    
     if authenticate():
-        if request.method == 'POST':
-            pat_gender = request.form['gender']
-            pat_name = request.form['name']
-            pat_lastname = request.form['lastname']
-            pat_age = request.form['age']
-            errs = ''
-            if not name_regex.match(pat_name):
-                errs += '- Name should start with letters.\n'
-            if not name_regex.match(pat_lastname):
-                errs += '- Lastname should start with letters.'
-            if len(errs) > 0:
-                flash(errs)
+        if admin():
+            if request.method == 'POST':
+                pat_gender = request.form['gender']
+                pat_name = request.form['name']
+                pat_lastname = request.form['lastname']
+                pat_age = request.form['age']
+                errs = ''
+                if not name_regex.match(pat_name):
+                    errs += '- Name should start with letters.\n'
+                if not name_regex.match(pat_lastname):
+                    errs += '- Lastname should start with letters.'
+                if len(errs) > 0:
+                    flash(errs)
+                    return redirect('/patients')
+                db.table('patients').update(
+                    ('p_name', 'p_lastname', 'p_age', 'p_gender'),
+                    (pat_name, pat_lastname, pat_age, pat_gender),
+                    Id
+                )
                 return redirect('/patients')
-            db.table('patients').update(
-                ('p_name', 'p_lastname', 'p_age', 'p_gender'),
-                (pat_name, pat_lastname, pat_age, pat_gender),
-                Id
-            )
             return redirect('/patients')
-        return redirect('/patients')
+        else: return redirect('/patients')
     return redirect('/login')
 
 
@@ -278,6 +314,7 @@ def edit_patient(Id):
 def doctors():
     """Returns doctors page
     """
+    
     if authenticate():
         docs = db.inner_join('doctors', 'departments',
                              'doctors.dep_id', 'departments.id')
@@ -290,26 +327,29 @@ def doctors():
 def add_doctor():
     """Adds an specific doctor
     """
+    
     if authenticate():
-        if request.method == 'POST':
-            dep_id = request.form['department']
-            doc_name = request.form['name']
-            doc_lastname = request.form['lastname']
-            doc_details = request.form['details']
-            errs = ''
-            if not name_regex.match(doc_name):
-                errs += '- Name should start with letters.\n'
-            if not name_regex.match(doc_lastname):
-                errs += '- Lastname should start with letters.'
-            if len(errs) > 0:
-                flash(errs)
+        if admin():
+            if request.method == 'POST':
+                dep_id = request.form['department']
+                doc_name = request.form['name']
+                doc_lastname = request.form['lastname']
+                doc_details = request.form['details']
+                errs = ''
+                if not name_regex.match(doc_name):
+                    errs += '- Name should start with letters.\n'
+                if not name_regex.match(doc_lastname):
+                    errs += '- Lastname should start with letters.'
+                if len(errs) > 0:
+                    flash(errs)
+                    return redirect('/doctors')
+                db.table('doctors').add(
+                    ('doc_name', 'doc_lastname', 'doc_details', 'dep_id', 'doc_date'),
+                    (doc_name, doc_lastname, doc_details, dep_id, date.today())
+                )
                 return redirect('/doctors')
-            db.table('doctors').add(
-                ('doc_name', 'doc_lastname', 'doc_details', 'dep_id', 'doc_date'),
-                (doc_name, doc_lastname, doc_details, dep_id, date.today())
-            )
-            return redirect('/doctors')
-        return 'Invalid request method!'
+            return 'Invalid request method!'
+        return redirect('/doctors')
     return redirect('/login')
 
 
@@ -317,9 +357,12 @@ def add_doctor():
 def delete_doctor(Id):
     """Deletes an specific doctor
     """
+    
     if authenticate():
-        db.table('doctors').delete('id', Id)
-        return redirect('/doctors')
+        if admin():
+            db.table('doctors').delete('id', Id)
+            return redirect('/doctors')
+        else: return redirect('/doctors')
     return redirect('/login')
 
 
@@ -327,27 +370,30 @@ def delete_doctor(Id):
 def edit_doctor(Id):
     """Edits an specific doctor
     """
+    
     if authenticate():
-        if request.method == 'POST':
-            dep_id = request.form['department']
-            doc_name = request.form['name']
-            doc_lastname = request.form['lastname']
-            doc_details = request.form['details']
-            errs = ''
-            if not name_regex.match(doc_name):
-                errs += '- Name should start with letters.\n'
-            if not name_regex.match(doc_lastname):
-                errs += '- Lastname should start with letters.'
-            if len(errs) > 0:
-                flash(errs)
+        if admin():
+            if request.method == 'POST':
+                dep_id = request.form['department']
+                doc_name = request.form['name']
+                doc_lastname = request.form['lastname']
+                doc_details = request.form['details']
+                errs = ''
+                if not name_regex.match(doc_name):
+                    errs += '- Name should start with letters.\n'
+                if not name_regex.match(doc_lastname):
+                    errs += '- Lastname should start with letters.'
+                if len(errs) > 0:
+                    flash(errs)
+                    return redirect('/doctors')
+                db.table('doctors').update(
+                    ('doc_name', 'doc_lastname', 'doc_details', 'dep_id'),
+                    (doc_name, doc_lastname, doc_details, dep_id),
+                    Id
+                )
                 return redirect('/doctors')
-            db.table('doctors').update(
-                ('doc_name', 'doc_lastname', 'doc_details', 'dep_id'),
-                (doc_name, doc_lastname, doc_details, dep_id),
-                Id
-            )
             return redirect('/doctors')
-        return redirect('/doctors')
+        else: return redirect('/doctors')
     return redirect('/login')
 
 
@@ -355,6 +401,7 @@ def edit_doctor(Id):
 def login():
     """Returns login page
     """
+    
     if authenticate():
         return redirect('/')
     if request.method == 'POST':
@@ -367,6 +414,7 @@ def login():
             return redirect('/login')
         else:
             session['fullname'] = res['fullname']
+            session['role'] = res['role']
             return redirect('/')
     return render_template('auth/login.html')
 
@@ -375,6 +423,7 @@ def login():
 def register():
     """Returns register page
     """
+    
     if authenticate():
         return redirect('/')
     if request.method == 'POST':
@@ -384,9 +433,10 @@ def register():
         pwd = base64.b64encode(pwd.encode("utf-8"))
         res = db.table('auths').where('email', eml)
         if res is None:
-            db.table('auths').add(('fullname', 'email', 'password'),
-                                  (fname, eml, str(pwd)))
+            db.table('auths').add(('fullname', 'email', 'password', 'role'),
+                                  (fname, eml, str(pwd), 'user'))
             session['fullname'] = fname
+            session['role'] = 'user'
             return redirect('/')
         else:
             flash('Email has already taken!')
@@ -398,8 +448,10 @@ def register():
 def logout():
     """Logouts from session
     """
+    
     if authenticate():
         session.pop('fullname', None)
+        session.pop('role', None)
         return redirect('/login')
     return render_template('/login')
 
@@ -410,8 +462,17 @@ def logout():
 def catch_all(path):
     """Catches all routes and returns 404 if url does not much
     """
+    
     return render_template('404.html')
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
+    
+    
+    
+    
+    
+    
+    

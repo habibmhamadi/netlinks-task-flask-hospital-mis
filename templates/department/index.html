@@ -10,9 +10,10 @@
          {% endif %}  
         {% endwith %}  
 
-    <div class="flex justify-end my-8">
+    <div class="flex justify-end my-8">{% if 'admin' in session['role'] %}
         <button onclick="toggleForm('','','Add Department:','/departments/add')" class="rounded-lg border border-red-600 px-2 py-1 text-red-600 modal-open">Add</button>
-    </div>
+        {% endif %}
+      </div>
 
 
       {% if deps[0] %}
@@ -24,7 +25,9 @@
                     <th class="px-6 py-3">Department Name</th>
                     <th class="px-6 py-3">Doctors</th>
                     <th class="px-6 py-3">Date Registered</th>
+                    {% if 'admin' in session['role'] %}
                     <th class="px-6 py-3">Actions</th>
+                    {% endif %}
                 </tr>
             </thead>
             <body style="text-align: left;">
@@ -35,12 +38,14 @@
                     <td class="px-6 py-2">{{i.dep_name}}</td>
                     <td class="px-6 py-2">{{i.doctors}}</td>
                     <td class="px-6 py-2">{{i.dep_date}}</td>
+                    {% if 'admin' in session['role'] %}
                     <td class="px-6 py-2">
                       <i onclick="deleteItem('{{i.id}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
                       <i onclick="toggleForm('{{i.id}}','{{i.dep_name}}','Edit Department:','/departments/edit/')" 
                          class="fa fa-pencil cursor-pointer text-gray-600 modal-open">
                       </i>
                     </td>
+                    {% endif %}
                 </tr>
                 {% else %}
                 <tr>
@@ -48,10 +53,12 @@
                     <td class="px-6 py-2">{{i.dep_name}}</td>
                     <td class="px-6 py-2">{{i.doctors}}</td>
                     <td class="px-6 py-2">{{i.dep_date}}</td>
+                    {% if 'admin' in session['role'] %}
                     <td class="px-6 py-2">
                       <i onclick="deleteItem('{{i.id}}')" class="popup-open cursor-pointer fa fa-trash text-gray-600 mr-2"></i>
                       <i onclick="toggleForm('{{i.id}}','{{i.dep_name}}','Edit Department:','/departments/edit/')" class="fa fa-pencil cursor-pointer text-gray-600 modal-open"></i>
                     </td>
+                    {% endif %}
                 </tr>
                 {% endif %}
                 {% endfor %}
